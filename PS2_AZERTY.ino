@@ -33,7 +33,8 @@
 // Defining Pins (Data + Clock)
 const char dtPin=2;
 const char clkPin=3;
-uint8_t nextKey=0;
+uint32_t count=0;
+uint8_t prevKey=0;
 
 ///////////
 // SETUP //
@@ -52,10 +53,10 @@ void setup() {
 //////////
 
 void loop() {
-	if(nextKey) {
-	Serial.println(nextKey);
-	nextKey = 0;
+	if(dtPin==0) {
+		prevKey=3;
 	}
+	delay(20000);
 }
 
 ///////////////////
@@ -84,6 +85,19 @@ void ps2Interrupt() {
 			break;
 		// Stop
 		case 11:
+
+			// Checking if the key was unpressed, if it's the case, don't send the keycode
+
+			if(prevKey==240 || val==240) {
+				prevKey = val;
+				val = 0;
+				bitCount = 0;
+				break;
+			}
+
+			prevKey = val;
+			Serial.println(count);
+			count++;
 			Serial.print("Decimal: ");
 			Serial.println(val, DEC); //print scan code in decimal
 			Serial.print("Binary: 0x");
