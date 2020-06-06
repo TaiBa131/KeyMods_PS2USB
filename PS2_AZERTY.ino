@@ -87,6 +87,7 @@ void ps2Interrupt() {
 			Serial.println(val, DEC) //print scan code in decimal
 			Serial.print("Binary: ");
 			Serial.println(val, BYTE) //print scan code in binary
+			bitCount = 0;
 			break;
 	// put your interrupt code here, runs when PS2 device interrupts
 }
