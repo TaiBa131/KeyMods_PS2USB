@@ -29,8 +29,8 @@
 //#include "PS2Keycodes.h"
 
 // Defining Pins (Data + Clock)
-const char dtPin 2;
-const char clkPin 3;
+const char dtPin=2;
+const char clkPin=3;
 uint8_t nextKey=0;
 
 ///////////
@@ -61,7 +61,7 @@ void loop() {
 ///////////////////
 
 void ps2Interrupt() {
-	static uint_8t val=0, bitCount=0;
+	static uint8_t val=0, bitCount=0;
 	bool recievedBit;
 
 	recievedBit = digitalRead(dtPin);
@@ -84,10 +84,12 @@ void ps2Interrupt() {
 		// Stop
 		case 11:
 			Serial.print("\n Decimal: ");
-			Serial.println(val, DEC) //print scan code in decimal
+			Serial.println(val, DEC); //print scan code in decimal
 			Serial.print("Binary: ");
-			Serial.println(val, BYTE) //print scan code in binary
+			Serial.write(byte(val)); //print scan code in binary
+      Serial.println();
 			bitCount = 0;
 			break;
 	// put your interrupt code here, runs when PS2 device interrupts
+  }
 }
