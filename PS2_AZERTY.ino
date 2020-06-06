@@ -75,7 +75,7 @@ void ps2Interrupt() {
 		// Data
 		case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9:
 			//First bit?
-			val << 1;		// Shift left
+			val <<= 1;		// Shift left
 			val |= recievedBit;	// OR (val= val | recievedBit)
 			break;
 		// Parity
