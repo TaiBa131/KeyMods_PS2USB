@@ -23,6 +23,8 @@
  * - http://www.electronics-base.com/general-description/communication/111-the-ps2-protocol-used-by-mousekeyboard
  * - http://www.burtonsys.com/ps2_chapweske.htm
  * - https://github.com/techpaul/PS2KeyAdvanced/blob/master/src/PS2KeyAdvanced.cpp // C switch cases, but not the code i wanted.
+ *
+ * - https://binaryupdates.com/bitwise-operations-in-embedded-programming/ // Bitwise 2
  */
 
 // This is later include the PS2 Scan codes to convert scancodes to (special) characters
@@ -75,21 +77,22 @@ void ps2Interrupt() {
 		// Data
 		case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9:
 			//First bit?
-			val <<= 1;		// Shift left
-			val |= recievedBit;	// OR (val= val | recievedBit)
+			val |= (recievedBit << (bitCount-2));
 			break;
 		// Parity
 		case 10:
 			break;
 		// Stop
 		case 11:
-			Serial.print("\n Decimal: ");
+			Serial.print("Decimal: ");
 			Serial.println(val, DEC); //print scan code in decimal
-			Serial.print("Binary: ");
-			Serial.write(byte(val)); //print scan code in binary
-      Serial.println();
+			Serial.print("Binary: 0x");
+			Serial.println(val, HEX);
+			//Serial.write(byte(val)); //print scan code in binary
+			Serial.println();
 			bitCount = 0;
+			val = 0;
 			break;
 	// put your interrupt code here, runs when PS2 device interrupts
-  }
+	}
 }
