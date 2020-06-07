@@ -46,7 +46,7 @@ void setup() {
 	pinMode(clkPin, INPUT);
 	attachInterrupt(digitalPinToInterrupt(3), ps2Interrupt, FALLING);
 
-	Serial.begin(9600);
+	Serial.begin(115200);
 }
 
 //////////
