@@ -33,8 +33,9 @@
 // Defining Pins (Data + Clock)
 const char dtPin=2;
 const char clkPin=3;
-uint32_t count=0;
-uint8_t prevKey=0;
+
+unsigned int debugCount=0;
+unsigned char prevKey=0;
 
 ///////////
 // SETUP //
@@ -64,7 +65,7 @@ void loop() {
 ///////////////////
 
 void ps2Interrupt() {
-	static uint8_t val=0, bitCount=0;
+	static unsigned char val=0, bitCount=0;
 	bool recievedBit;
 
 	recievedBit = digitalRead(dtPin);
@@ -97,8 +98,8 @@ void ps2Interrupt() {
 
 			prevKey = val;
 
-			Serial.println(count);
-			count++;
+			Serial.println(debugCount);
+			debugCount++;
 
 			Serial.print("Decimal: ");
 			Serial.println(val, DEC); //print scan code in decimal
@@ -108,6 +109,5 @@ void ps2Interrupt() {
 			bitCount = 0;
 			val = 0;
 			break;
-	// put your interrupt code here, runs when PS2 device interrupts
 	}
 }
