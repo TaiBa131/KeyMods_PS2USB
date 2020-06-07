@@ -96,14 +96,15 @@ void ps2Interrupt() {
 			}
 
 			prevKey = val;
+
 			Serial.println(count);
 			count++;
+
 			Serial.print("Decimal: ");
 			Serial.println(val, DEC); //print scan code in decimal
-			Serial.print("Binary: 0x");
+			Serial.print("Hexadecimal: 0x");
 			Serial.println(val, HEX);
-			//Serial.write(byte(val)); //print scan code in binary
-			Serial.println();
+
 			bitCount = 0;
 			val = 0;
 			break;
