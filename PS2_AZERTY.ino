@@ -25,10 +25,12 @@
  * - https://github.com/techpaul/PS2KeyAdvanced/blob/master/src/PS2KeyAdvanced.cpp // C switch cases, but not the code i wanted.
  *
  * - https://binaryupdates.com/bitwise-operations-in-embedded-programming/ // Bitwise 2
+ * - https://wiki.osdev.org/PS/2_Keyboard // Keycodes Template - Scan Code Set 2
+ * - https://www.arduino.cc/reference/en/language/functions/usb/keyboard/keyboardmodifiers // Crappy HID Arduino library
  */
 
 // This is later include the PS2 Scan codes to convert scancodes to (special) characters
-//#include "PS2Keycodes.h"
+#include "PS2Keycodes.h"
 
 // Defining Pins (Data + Clock)
 const char dtPin=2;
@@ -58,6 +60,14 @@ void loop() {
 		prevKey=3;
 	}
 	delay(20000);
+}
+
+///////////////////////
+// KEYCODE TRANSLATE //
+///////////////////////
+
+unsigned int translate() {
+	return 0;
 }
 
 ///////////////////
