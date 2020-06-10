@@ -30,10 +30,14 @@
  * - https://github.com/kolsys/PS2USBConverter/blob/master/PS2USBConverter.ino // Keycodes, Scancode "Manager", Loop, Reports
  * - https://www.youtube.com/watch?v=1unTKKGd8qs // Amazing video about how USB HID works - Sparkfun 
  * - https://www.win.tue.nl/~aeb/linux/kbd/scancodes-14.html // USB HID codes
+ *
+ * Source:
+ * - own code
+ * - Research from sites used
+ * - https://github.com/kolsys/PS2USBConverter/blob/master/PS2USBConverter.ino ("PS2 Library", as there was no good one)
+ * 
  */
 
-// This is later include the PS2 Scan codes to convert scancodes to (special) characters
-// #include "PS2Keycodes.h"
 #include "Keyboard.h"
 
 // Defining Pins (Data + Clock)
@@ -44,10 +48,11 @@ uint8_t K[255], KE[255];
 
 #define BUFFER 45
 
+KeyReport report;
 static volatile unsigned char buffer[BUFFER];
 static volatile unsigned char head = 0, tail = 0;
-static volatile unsigned char sendBits, msg, bitCount, setBits;
-unsigned char LEDs;
+static volatile unsigned char sendBits = 0, msg, sendBitCount, setBits;
+unsigned char LEDs, skip;
 boolean spc, rel, sendLedStatus;
 
 ///////////
@@ -59,7 +64,9 @@ void setup() {
 	pinMode(clkPin, INPUT);
 	attachInterrupt(digitalPinToInterrupt(3), ps2Interrupt, FALLING);
 
-	Serial.begin(115200);
+	Keyboard.begin();
+	setupKeycodes();
+	delay(1000); // Give time for the USB HID to initialize
 }
 
 //////////
@@ -80,29 +87,29 @@ void loop() {
 				}
 			} else {
 				if(scanCode == 0xE1) { // Start Byte of PS2 Scancode for press of Pause key
-					k2 = 72; // USB HID scancode for Pause
-					skip = 7;
+					key2 = 72; // USB HID scancode for Pause
+					skip = 7; // See "PS2 Library" for this solution, allows to skip the useless keycodes
 					rel = true;
-					report_add(k2); // Add pressed Key to report
+					reportAdd(key2); // Add pressed Key to report
 					Keyboard.sendReport(&report); // send report to Host
 				} else {
-					k2 = spc ? KE[k] : K[k]; // Getting single scancode
+					key2 = spc ? KE[scanCode] : K[scanCode]; // Getting single scancode
 				}
 
-				if(k2) {
+				if(key2) {
 					if(rel) {
-						report_remove(k2); // Stop announcing key to Host
+						reportRemove(key2); // Stop announcing key to Host
 
-						if (k2 == 83 || k2 == 71 || k2 == 57) {
+						if (key2 == 83 || key2 == 71 || key2 == 57) {
 							sendLedStatus = true;
 
-							if(k2 == 83) LEDs ^= 2;		// XOR - Note: "Bit Toggle"
-							else if(k2 == 71) LEDs ^= 1;	// XOR
-							else if(k2 == 57) LEDs ^= 4;	// XOR
+							if(key2 == 83) LEDs ^= 2;		// XOR - Note: "Bit Toggle"
+							else if(key2 == 71) LEDs ^= 1;	// XOR
+							else if(key2 == 57) LEDs ^= 4;	// XOR
 
 							sendMessage(0xED); // Set LEDs command Host to Keyboard
 						}
-					} else report_add(k2);
+					} else reportAdd(key2);
 					Keyboard.sendReport(&report);
 				}
 
@@ -126,7 +133,7 @@ void sendMessage(unsigned char message) {
 	pinMode(clkPin, INPUT); // Give clock back to Keyboard;
 
 	msg = message;
-	bitCount = 0;
+	sendBitCount = 0;
 	sendBits = 12;
 	setBits = 0;
 
@@ -140,34 +147,76 @@ void sendMessage(unsigned char message) {
 // PS2 Scancode //
 //////////////////
 
-unsigned char getScancode() {
-	unsigned char c, i = tail;
+// Source: PS2 Library: https://github.com/PaulStoffregen/PS2Keyboard/blob/master/PS2Keyboard.cpp
 
+unsigned char getScancode() {
+	unsigned char c, i;
+
+	i = tail;
 	if(i == head) return 0;
 	i++;
 	if(i >= BUFFER) i = 0;
 	c = buffer[i];
 	tail = i;
-	return c
+	Serial.println(c);
+	return c;
 }
 
 //////////////////////////////
 // USB HID Keyboard Reports //
 //////////////////////////////
 
+// Source: Keyboard.h file
 
+void reportAdd(unsigned char key) {
+	if(key >= 224) report.modifiers |= 1 << (key - 224); // Check if key is a Modifier Key (CTRL, etc.)
+        else if (report.keys[0] != key && report.keys[1] != key && // Checking if key isn't already pressed
+             report.keys[2] != key && report.keys[3] != key &&
+             report.keys[4] != key && report.keys[5] != key) {
+		for (int i = 0; i < 6; ++i) {
+			if (report.keys[i] == 0) { // Find empty key in report
+				report.keys[i] = key;
+				break;
+			}
+		}
+	}
+}
+
+// Source: Keyboard.h file
+
+void reportRemove(unsigned char key) {
+	if (key >= 224) report.modifiers &= ~(1 << (key - 224));
+	else {
+		for (int i = 0; i < 6; ++i) {
+			if (report.keys[i] == key) {
+				report.keys[i] = 0;
+				break;
+			}
+		}
+	}
+}
 
 ///////////////////
 // PS2 Interrupt //
 ///////////////////
 
 void ps2Interrupt() {
-	static unsigned char val=0, bitCount=0;
+	static unsigned char val=0,bitCount=0;
+	static long prevMs=0;
+	long nowMs;
 	bool recievedBit;
 
-	if(!sendBits) {
 
+
+	if(!sendBits) {
 		recievedBit = digitalRead(dtPin);
+
+		nowMs = millis();
+		if (nowMs - prevMs > 250) {
+			bitCount = 0;
+			val = 0;
+		}
+		prevMs = nowMs;
 
 		bitCount++;
 		switch(bitCount) {
@@ -198,17 +247,34 @@ void ps2Interrupt() {
 				bitCount = 0;
 				val = 0;
 				break;
+			default:
+				bitCount = 0;
+				val = 0;
+				break;
 		}
 	} else {
-		//sendBits--;
+		sendBits--;
+		uint8_t b = sendBitCount - 1; // Adjusted Bitcount for binary operations
+
+		if(b == 8) {
+			digitalWrite(dtPin, !(setBits & 1)); // Parity bit
+		} else if(b == 10) {
+			pinMode(dtPin, INPUT); // Accepting data from Keyboard again
+		} else if(b < 9) {
+			bool bt = (msg >> b) & 1; // Desecting message in bits
+			digitalWrite(dtPin, bt); // Sending bit
+			setBits += bt;
+		}
+
+		sendBitCount++;
 	}
 }
 
-//////////////
-// Keycodes //
-//////////////
+//////////////////////////////////
+// Keycodes - Adapted to AZERTY //
+//////////////////////////////////
 
-void setup_keycodes(){
+void setupKeycodes(){
 	K[0x1C] = 4;
 	K[0x32] = 5;
 	K[0x21] = 6;
