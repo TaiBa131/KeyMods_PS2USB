@@ -27,7 +27,9 @@
  * - https://binaryupdates.com/bitwise-operations-in-embedded-programming/ // Bitwise 2
  * - https://wiki.osdev.org/PS/2_Keyboard // Keycodes Template - Scan Code Set 2
  * - https://www.arduino.cc/reference/en/language/functions/usb/keyboard/keyboardmodifiers // Crappy HID Arduino library
- * - https://github.com/kolsys/PS2USBConverter/blob/master/PS2USBConverter.ino // Keycodes, Scancode "Manager"
+ * - https://github.com/kolsys/PS2USBConverter/blob/master/PS2USBConverter.ino // Keycodes, Scancode "Manager", Loop, Reports
+ * - https://www.youtube.com/watch?v=1unTKKGd8qs // Amazing video about how USB HID works - Sparkfun 
+ * - https://www.win.tue.nl/~aeb/linux/kbd/scancodes-14.html // USB HID codes
  */
 
 // This is later include the PS2 Scan codes to convert scancodes to (special) characters
@@ -45,6 +47,8 @@ uint8_t K[255], KE[255];
 static volatile unsigned char buffer[BUFFER];
 static volatile unsigned char head = 0, tail = 0;
 static volatile unsigned char sendBits, msg, bitCount, setBits;
+unsigned char LEDs;
+boolean spc, rel, sendLedStatus;
 
 ///////////
 // SETUP //
@@ -63,11 +67,78 @@ void setup() {
 //////////
 
 void loop() {
+	unsigned char scanCode = getScancode(), key2;
+	if(scanCode) {
+		if(skip) skip--;
+		else {
+			if(scanCode == 0xE0) spc = true; // Special (Multimedia, etc.) Key
+			else if(scanCode == 0xF0) rel = true; // Key Released
+			else if(scanCode == 0xFA) { // Acknowledgement of command
+				if(sendLedStatus) { // If we wanted to send a LED command, we send it after ACK from Keyboard
+					sendLedStatus = false;
+					sendMessage(LEDs); // Send current LEDs 
+				}
+			} else {
+				if(scanCode == 0xE1) { // Start Byte of PS2 Scancode for press of Pause key
+					k2 = 72; // USB HID scancode for Pause
+					skip = 7;
+					rel = true;
+					report_add(k2); // Add pressed Key to report
+					Keyboard.sendReport(&report); // send report to Host
+				} else {
+					k2 = spc ? KE[k] : K[k]; // Getting single scancode
+				}
+
+				if(k2) {
+					if(rel) {
+						report_remove(k2); // Stop announcing key to Host
+
+						if (k2 == 83 || k2 == 71 || k2 == 57) {
+							sendLedStatus = true;
+
+							if(k2 == 83) LEDs ^= 2;		// XOR - Note: "Bit Toggle"
+							else if(k2 == 71) LEDs ^= 1;	// XOR
+							else if(k2 == 57) LEDs ^= 4;	// XOR
+
+							sendMessage(0xED); // Set LEDs command Host to Keyboard
+						}
+					} else report_add(k2);
+					Keyboard.sendReport(&report);
+				}
+
+				spc = false;
+				rel = false;
+			}
+		}
+	}
 }
 
-//////////////
-// Scancode //
-//////////////
+//////////////////////
+// HOST TO KEYBOARD //
+//////////////////////
+
+void sendMessage(unsigned char message) {
+	noInterrupts(); // Disables Interrupts
+
+	pinMode(clkPin, OUTPUT);
+	digitalWrite(clkPin, LOW); // Initiate/Announce Host to Keyboard communication
+	delayMicroseconds(60); // Wait for Keyboard to register
+	pinMode(clkPin, INPUT); // Give clock back to Keyboard;
+
+	msg = message;
+	bitCount = 0;
+	sendBits = 12;
+	setBits = 0;
+
+	pinMode(dtPin, OUTPUT);
+	digitalWrite(dtPin, LOW);
+	interrupts(); // Wait on first next falling edge
+}
+
+
+//////////////////
+// PS2 Scancode //
+//////////////////
 
 unsigned char getScancode() {
 	unsigned char c, i = tail;
@@ -79,6 +150,12 @@ unsigned char getScancode() {
 	tail = i;
 	return c
 }
+
+//////////////////////////////
+// USB HID Keyboard Reports //
+//////////////////////////////
+
+
 
 ///////////////////
 // PS2 Interrupt //
