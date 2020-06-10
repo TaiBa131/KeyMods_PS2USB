@@ -59,20 +59,11 @@ void setup() {
 }
 
 //////////
-// VOID //
+// LOOP //
 //////////
 
 void loop() {
-	if(dtPin==0) {
-		prevKey=3;
-	}
-	delay(20000);
 }
-
-///////////////////////
-// KEYCODE TRANSLATE //
-///////////////////////
-
 
 //////////////
 // Scancode //
