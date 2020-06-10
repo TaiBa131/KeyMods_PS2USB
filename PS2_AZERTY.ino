@@ -252,7 +252,7 @@ void setup_keycodes(){
 	K[0x66] = 42;
 	K[0x29] = 44;
 	K[0x0D] = 43;
-	K[0x58] = 227; //CAPS 57
+	K[0x58] = 57; //Caps Lock, cahnge to 227 to get a Windows key if you're using a keyboard without one
 	K[0x12] = 225;
 	K[0x14] = 224;
 	K[0x11] = 226;
@@ -271,7 +271,7 @@ void setup_keycodes(){
 	K[0x09] = 67;
 	K[0x78] = 68;
 	K[0x07] = 69;
-	K[0x7E] = 57; //Scroll 71
+	K[0x7E] = 71; //Scroll Lock, change to 58 if you want Caps Lock on it instead
 	K[0x54] = 47;
 	K[0x77] = 83;
 	K[0x7C] = 85;
