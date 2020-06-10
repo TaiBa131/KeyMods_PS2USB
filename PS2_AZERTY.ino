@@ -27,7 +27,7 @@
  * - https://binaryupdates.com/bitwise-operations-in-embedded-programming/ // Bitwise 2
  * - https://wiki.osdev.org/PS/2_Keyboard // Keycodes Template - Scan Code Set 2
  * - https://www.arduino.cc/reference/en/language/functions/usb/keyboard/keyboardmodifiers // Crappy HID Arduino library
- * - https://github.com/kolsys/PS2USBConverter/blob/master/PS2USBConverter.ino // Keycodes
+ * - https://github.com/kolsys/PS2USBConverter/blob/master/PS2USBConverter.ino // Keycodes, Scancode "Manager"
  */
 
 // This is later include the PS2 Scan codes to convert scancodes to (special) characters
@@ -74,6 +74,20 @@ void loop() {
 ///////////////////////
 
 
+//////////////
+// Scancode //
+//////////////
+
+unsigned char getScancode() {
+	unsigned char c, i = tail;
+
+	if(i == head) return 0;
+	i++;
+	if(i >= BUFFER) i = 0;
+	c = buffer[i];
+	tail = i;
+	return c
+}
 
 ///////////////////
 // PS2 Interrupt //
