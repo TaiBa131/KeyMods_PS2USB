@@ -30,6 +30,7 @@
  * - https://github.com/kolsys/PS2USBConverter/blob/master/PS2USBConverter.ino // Keycodes, Scancode "Manager", Loop, Reports
  * - https://www.youtube.com/watch?v=1unTKKGd8qs // Amazing video about how USB HID works - Sparkfun 
  * - https://www.win.tue.nl/~aeb/linux/kbd/scancodes-14.html // USB HID codes
+ * - https://web.archive.org/web/20150316084844/http://retired.beyondlogic.org/keyboard/keybrd.htm // AT / PS2 Keyboard documentation
  *
  * Source:
  * - own code
