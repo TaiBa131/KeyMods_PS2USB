@@ -1,8 +1,12 @@
-# PS2 Keyboard to USB Convertor - Pro Micro 5V 16Mhz
+PS2 Keyboard to USB Convertor - Pro Micro 5V 16Mhz
+==================================================
+![KeyMods](images/logo_cropped.png?raw=true "KeyMods Logo")
 This sketch allows to convert PS2 to USB.
 
-It's currently on AZERTY, but the PS2Keycodes.h
-file can be edited to change the keymap
+PS2 or USB don't know about specific country keyboard layouts,
+that is handled on the OS.
+
+Everything is done in the PS2_AZERTY.ino file.
 
 The default Data pin is 2, the default Clock pin is 3.
 
