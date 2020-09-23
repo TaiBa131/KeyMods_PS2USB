@@ -2,8 +2,9 @@
  * PS2 Keyboard to USB Convertor - Pro Micro 5V 16Mhz
  * This sketch allows to convert PS2 to USB.
  *
- * It's currently on AZERTY, but the PS2Keycodes.h
- * file can be edited to change the keymap
+ * Country keyboard layouts don't matter, as the keyboard
+ * only send keycodes, and those get translated to USB.
+ * That work is done on the Host USB device.
  *
  * The default Data pin is 2, the default Clock pin is 3.
  *
@@ -39,6 +40,8 @@
  * 
  */
 
+// Additional Keyboard library is necessary,
+// with modification of the Keyboard.h file
 #include "Keyboard.h"
 
 // Defining Pins (Data + Clock)
@@ -319,7 +322,7 @@ void setupKeycodes(){
 	K[0x66] = 42;
 	K[0x29] = 44;
 	K[0x0D] = 43;
-	K[0x58] = 57; //Caps Lock, cahnge to 227 to get a Windows key if you're using a keyboard without one
+	K[0x58] = 57; // Caps Lock, change to 227 to get a Windows key if you're using a keyboard without one
 	K[0x12] = 225;
 	K[0x14] = 224;
 	K[0x11] = 226;
@@ -338,7 +341,7 @@ void setupKeycodes(){
 	K[0x09] = 67;
 	K[0x78] = 68;
 	K[0x07] = 69;
-	K[0x7E] = 71; //Scroll Lock, change to 58 if you want Caps Lock on it instead
+	K[0x7E] = 71; // Scroll Lock, change to 58 if you want Caps Lock (if youre using Caps Lock as Windows key)
 	K[0x54] = 47;
 	K[0x77] = 83;
 	K[0x7C] = 85;
