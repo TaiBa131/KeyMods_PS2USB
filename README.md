@@ -7,6 +7,10 @@ PS2 or USB don't know about specific country keyboard layouts,
 that is handled on the OS.
 
 Everything is done in the PS2_AZERTY.ino file.
+However, it requires a modified Keyboard.h file, as the original one
+doesn't allow for the modification of the KeyReport, as well as the
+manual sending of those reports.<br>
+It is included as `modifiedKeyboard.h`
 
 The default Data pin is 2, the default Clock pin is 3.
 
